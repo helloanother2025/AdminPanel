@@ -1,0 +1,6 @@
+{
+  "name": "BashayJabo Admin Console",
+  "description": "Advanced administrative dashboard for the BashayJabo platform, featuring safety monitoring, ride management, chat moderation, and system repair tools.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
