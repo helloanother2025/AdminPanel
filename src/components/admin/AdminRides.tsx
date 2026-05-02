@@ -34,7 +34,7 @@ function RideDetailModal({ ride, onClose }: { ride: AdminRide; onClose: () => vo
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-      <div className="bg-[#111114] border border-[#2A2A2E] rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl">
+      <div className="bg-[#111114] border border-[#2A2A2E] rounded-3xl w-full max-w-xl overflow-hidden shadow-2xl">
         <div className="p-6 border-b border-[#2A2A2E] flex items-center justify-between">
           <div className="flex items-center gap-3">
              <div className="w-10 h-10 rounded-xl bg-[#E83950]/10 flex items-center justify-center">
@@ -50,7 +50,7 @@ function RideDetailModal({ ride, onClose }: { ride: AdminRide; onClose: () => vo
           </button>
         </div>
 
-        <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
+        <div className="p-5 space-y-5 max-h-[55vh] overflow-y-auto">
           {/* Stats overview */}
           <div className="grid grid-cols-3 gap-4">
             <div className="bg-[#1A1A1E] rounded-2xl p-4 border border-[#2A2A2E]">
@@ -61,11 +61,11 @@ function RideDetailModal({ ride, onClose }: { ride: AdminRide; onClose: () => vo
             </div>
             <div className="bg-[#1A1A1E] rounded-2xl p-4 border border-[#2A2A2E]">
                <p className="text-white/40 text-[10px] uppercase tracking-wider mb-1">Seats</p>
-               <p className="text-white font-bold">{ride.currentPassengers} / {ride.seats}</p>
+               <p className="text-white font-bold">{(ride.currentPassengers ?? 0)} / {(ride.seats ?? 0)}</p>
             </div>
             <div className="bg-[#1A1A1E] rounded-2xl p-4 border border-[#2A2A2E]">
                <p className="text-white/40 text-[10px] uppercase tracking-wider mb-1">Creator</p>
-               <p className="text-white font-bold text-sm truncate">{ride.creatorName}</p>
+               <p className="text-white font-bold text-sm truncate">{ride.creatorName || '—'}</p>
             </div>
           </div>
 
@@ -151,7 +151,7 @@ function RideDetailModal({ ride, onClose }: { ride: AdminRide; onClose: () => vo
                <div className="flex items-center gap-2 text-white/40 text-[10px] uppercase tracking-wider mb-2">
                  <Clock size={12} /> Scheduled For
                </div>
-               <p className="text-white/90 text-sm">{new Date(ride.departureTime).toLocaleString()}</p>
+               <p className="text-white/90 text-sm">{ride.departureTime ? new Date(ride.departureTime).toLocaleString() : '—'}</p>
              </div>
           </div>
 
@@ -248,54 +248,77 @@ export function AdminRides() {
       ) : error ? (
         <div className="py-20 text-center text-[#E83950]">{error}</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map(ride => (
             <div
               key={ride.id}
               onClick={() => setSelectedRide(ride)}
-              className="bg-[#1A1A1E] border border-[#2A2A2E] rounded-3xl p-6 transition-all hover:bg-[#202025] hover:border-[#E83950]/20 cursor-pointer group"
+              className="group relative bg-[#1A1A1E] border border-[#2A2A2E] rounded-3xl p-6 transition-all hover:bg-[#202025] hover:border-[#E83950]/20 cursor-pointer overflow-hidden shadow-md"
             >
+              {/* Status Indicator Glow */}
+              <div className={`absolute top-0 right-0 w-12 h-12 opacity-0 group-hover:opacity-40 transition-opacity`} style={{ background: `radial-gradient(circle at 100% 0%, ${ride.status === 'unactive' ? '#10B981' : ride.status === 'started' ? '#3B82F6' : '#9CA3AF'} 0%, transparent 70%)` }} />
+
+              {/* Header with Icon and Route */}
               <div className="flex justify-between items-start mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-white/30 group-hover:bg-[#E83950]/10 group-hover:text-[#E83950] transition-colors">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 flex items-center justify-center text-white/40 group-hover:from-[#E83950]/20 group-hover:to-[#E83950]/5 group-hover:text-[#E83950] transition-all shrink-0">
                     <Car size={20} />
                   </div>
-                  <div>
-                    <h3 className="text-white font-bold truncate max-w-[150px]">{ride.from} &rarr; {ride.to}</h3>
-                    <p className="text-[10px] text-white/30 uppercase tracking-widest mt-0.5">ID: {ride.id}</p>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-white font-bold truncate max-w-xs group-hover:text-[#E83950] transition-colors">{ride.from} → {ride.to}</h3>
+                    <p className="text-[9px] text-white/40 truncate font-mono">{ride.id}</p>
                   </div>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${statusConfig[ride.status]?.color}`}>
+                <span className={`px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider whitespace-nowrap ${statusConfig[ride.status]?.color}`}>
                   {statusConfig[ride.status]?.label}
                 </span>
               </div>
 
-              <div className="space-y-4">
-                 <div className="flex gap-3">
-                    <div className="flex flex-col items-center gap-1 mt-1">
-                      <div className="w-2 h-2 rounded-full border border-emerald-500" />
-                      <div className="w-px h-6 border-r border-[#2A2A2E]" />
-                      <MapPin size={10} className="text-[#E83950]" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-white/80 text-xs truncate mb-2">{ride.from}</p>
-                      <p className="text-white/80 text-xs truncate">{ride.to}</p>
-                    </div>
-                 </div>
+              {/* Location Visualization */}
+              <div className="flex gap-3 mb-5 pb-5 border-b border-white/5">
+                <div className="flex flex-col items-center gap-1 mt-1">
+                  <div className="w-2.5 h-2.5 rounded-full border-2 border-emerald-500" />
+                  <div className="w-px h-8 border-r border-dashed border-[#2A2A2E]" />
+                  <MapPin size={14} className="text-[#E83950]" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-white/80 text-xs truncate mb-3">{ride.from}</p>
+                  <p className="text-white/80 text-xs truncate">{ride.to}</p>
+                </div>
+              </div>
 
-                 <div className="grid grid-cols-2 gap-3 pt-4 border-t border-white/5 text-[11px]">
-                    <div className="flex items-center gap-2 text-white/40">
-                      <Calendar size={12} />
-                      <span>{new Date(ride.departureTime).toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-white/40 justify-end">
-                      <User size={12} />
-                      <span>{ride.currentPassengers} / {ride.seats} Booked</span>
-                    </div>
+              {/* Stats Grid */}
+              <div className="grid grid-cols-3 gap-2 mb-5">
+                 <div className="flex flex-col items-center p-2 bg-white/5 rounded-xl">
+                    <p className="text-[9px] text-white/40 uppercase tracking-wider mb-1">Seats</p>
+                    <p className="text-white font-bold text-sm">{(ride.currentPassengers ?? 0)}/{(ride.seats ?? 0)}</p>
+                 </div>
+                 <div className="flex flex-col items-center p-2 bg-white/5 rounded-xl">
+                    <p className="text-[9px] text-white/40 uppercase tracking-wider mb-1">Fare</p>
+                    <p className="text-white font-bold text-sm">{ride.fare ? `${ride.currency || '$'}${ride.fare}` : 'TBD'}</p>
+                 </div>
+                 <div className="flex flex-col items-center p-2 bg-white/5 rounded-xl">
+                    <p className="text-[9px] text-white/40 uppercase tracking-wider mb-1">Reports</p>
+                    <p className={`font-bold text-sm ${(ride.reportCount ?? 0) > 0 ? 'text-[#E83950]' : 'text-white/60'}`}>{ride.reportCount ?? 0}</p>
                  </div>
               </div>
 
-              <button className="w-full mt-6 py-2.5 rounded-xl bg-white/5 group-hover:bg-[#E83950]/10 text-white/30 group-hover:text-[#E83950] text-xs font-bold uppercase tracking-widest transition-all">Inspect Details</button>
+              {/* Creator & Time */}
+              <div className="flex items-center justify-between text-[10px] mb-5 pb-5 border-b border-white/5">
+                 <div className="text-white/50">
+                    <p className="text-white/40 uppercase tracking-wider mb-1">Creator</p>
+                    <p className="text-white/70 font-medium truncate max-w-[120px]">{ride.creatorName || '—'}</p>
+                 </div>
+                 <div className="text-right text-white/50">
+                    <p className="text-white/40 uppercase tracking-wider mb-1">Departure</p>
+                    <p className="text-white/70 font-medium">{ride.departureTime ? new Date(ride.departureTime).toLocaleDateString() : '—'}</p>
+                 </div>
+              </div>
+
+              {/* Action Button */}
+              <button className="w-full py-2.5 rounded-xl bg-white/5 group-hover:bg-[#E83950]/10 text-white/30 group-hover:text-[#E83950] text-xs font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2">
+                <Eye size={13} /> Inspect Details
+              </button>
             </div>
           ))}
           {filtered.length === 0 && (

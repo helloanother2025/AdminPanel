@@ -11,7 +11,8 @@ import {
   Wrench, 
   FileText,
   LogOut,
-  ShieldCheck
+  ShieldCheck,
+  Scale
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -30,6 +31,7 @@ export function AdminLayout() {
     { to: '/admin/rides', icon: Car, label: 'Rides' },
     { to: '/admin/safety', icon: ShieldAlert, label: 'Safety' },
     { to: '/admin/chat', icon: MessageSquare, label: 'Chat' },
+    { to: '/admin/moderation', icon: Scale, label: 'Moderation' },
     { to: '/admin/join-requests', icon: FileText, label: 'Join Requests' },
     { to: '/admin/notifications', icon: Bell, label: 'Notifications' },
     { to: '/admin/repair', icon: Wrench, label: 'Repair Tools' },

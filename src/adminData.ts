@@ -7,12 +7,19 @@ export interface AdminUser {
   email: string;
   phone: string;
   status: AdminUserStatus;
-  trustScore: number;
-  joinedAt: string;
-  lastActive: string;
-  ridesCount: number;
-  rating: number;
-  flags: number;
+  trustScore?: number;
+  joinedAt?: string;
+  lastActive?: string;
+  ridesCount?: number;
+  rating?: number;
+  flags?: number;
+  // Moderation fields
+  reportCount?: number;
+  warningCount?: number;
+  lastWarningDate?: string;
+  bannedReason?: string;
+  bannedDate?: string;
+  autoSuspended?: boolean; // True if suspended due to threshold
 }
 
 export interface AdminRide {
@@ -23,13 +30,13 @@ export interface AdminRide {
   creatorName: string;
   creatorContact?: string;
   transport: string;
-  departureTime: string;
-  seats: number;
-  currentPassengers: number;
+  departureTime?: string;
+  seats?: number;
+  currentPassengers?: number;
   status: 'unactive' | 'started' | 'completed' | 'cancelled' | 'expired' | 'frozen';
-  reportCount: number;
-  flags: string[];
-  participantIds: string[];
+  reportCount?: number;
+  flags?: string[];
+  participantIds?: string[];
   fare?: number;
   currency?: string;
 }
@@ -55,12 +62,12 @@ export interface ChatRecord {
   rideId?: string;
   rideName?: string;
   type: 'direct' | 'group';
-  participants: string[];
-  messageCount: number;
-  lastActivity: string;
-  flagCount: number;
-  reportCount: number;
-  frozen: boolean;
+  participants?: string[];
+  messageCount?: number;
+  lastActivity?: string;
+  flagCount?: number;
+  reportCount?: number;
+  frozen?: boolean;
 }
 
 export interface Incident {
@@ -123,6 +130,66 @@ export interface SystemMetric {
   unit?: string;
   trend: 'up' | 'down' | 'stable';
   status: 'good' | 'warning' | 'critical';
+}
+
+// Moderation & Account Management Interfaces
+export interface UserReport {
+  id: string;
+  reportedUserId: string;
+  reportedUserName: string;
+  reporterId: string;
+  reporterName: string;
+  type: 'harassment' | 'fraud' | 'inappropriate_behavior' | 'safety_concern' | 'payment_issue' | 'other';
+  severity: 'critical' | 'high' | 'medium' | 'low';
+  description: string;
+  evidence?: string; // Chat messages, rides involved, etc.
+  rideId?: string;
+  chatId?: string;
+  status: 'open' | 'investigating' | 'substantiated' | 'dismissed';
+  reportedAt: string;
+  resolvedAt?: string;
+  adminNotes?: string;
+}
+
+export interface UserWarning {
+  id: string;
+  userId: string;
+  userName: string;
+  warningLevel: 1 | 2 | 3; // Level 3 can trigger auto-ban
+  reason: string;
+  description: string;
+  issuedBy: string; // Admin ID
+  issuedAt: string;
+  expiresAt?: string; // Warnings can expire after 6 months
+  active: boolean;
+}
+
+export interface ModerationAction {
+  id: string;
+  targetUserId: string;
+  targetUserName: string;
+  adminId: string;
+  adminName: string;
+  actionType: 'warn' | 'suspend' | 'ban' | 'restrict' | 'unban' | 'unsuspend';
+  reason: string;
+  triggerType: 'manual' | 'auto_threshold' | 'system'; // auto_threshold = exceeded report count
+  duration?: string; // e.g., "7 days", "permanent"
+  effectiveAt: string;
+  expiresAt?: string;
+  details?: {
+    reportCount?: number;
+    warningCount?: number;
+    lastIncident?: string;
+  };
+}
+
+export interface ModerationStats {
+  totalReports: number;
+  activeReports: number;
+  resolvedToday: number;
+  usersWithWarnings: number;
+  suspendedUsers: number;
+  bannedUsers: number;
 }
 
 export const accessReasons = [

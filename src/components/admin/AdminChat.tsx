@@ -20,7 +20,7 @@ function ChatDetailModal({ chat, onClose }: { chat: ChatRecord; onClose: () => v
   const [actionReason, setActionReason] = useState('');
   const [actionsDone, setActionsDone] = useState<string[]>([]);
 
-  const isIncidentChat = chat.reportCount > 0 || chat.flagCount > 0;
+  const isIncidentChat = (chat.reportCount ?? 0) > 0 || (chat.flagCount ?? 0) > 0;
   const messages = isIncidentChat ? mockMessages : [];
 
   const handleAction = (action: string) => {
@@ -50,7 +50,7 @@ function ChatDetailModal({ chat, onClose }: { chat: ChatRecord; onClose: () => v
               <span className={`px-2 py-0.5 rounded text-xs ${chat.type === 'group' ? 'bg-blue-500/15 text-blue-400' : 'bg-white/10 text-white/50'}`}>{chat.type}</span>
               {frozen && <span className="px-2 py-0.5 bg-cyan-500/15 text-cyan-400 text-xs rounded">Frozen</span>}
             </div>
-            <p className="text-white/40 text-sm">ID: {chat.id} · {chat.participants.join(', ')}</p>
+            <p className="text-white/40 text-sm">ID: {chat.id} · {(chat.participants ?? []).join(', ')}</p>
           </div>
           <button onClick={onClose}><X size={20} className="text-white/40 hover:text-white" /></button>
         </div>
@@ -61,15 +61,15 @@ function ChatDetailModal({ chat, onClose }: { chat: ChatRecord; onClose: () => v
             <h3 className="text-white/60 text-xs uppercase tracking-wider mb-3">Chat Metadata (Level 1)</h3>
             <div className="grid grid-cols-2 gap-3">
               {[
-                ['Participants', chat.participants.length],
-                ['Message Count', chat.messageCount],
-                ['Last Activity', new Date(chat.lastActivity).toLocaleString()],
-                ['Flags', chat.flagCount > 0 ? `⚠️ ${chat.flagCount}` : '0'],
-                ['Reports', chat.reportCount > 0 ? `🛡️ ${chat.reportCount}` : '0'],
+                ['Participants', (chat.participants?.length ?? 0)],
+                ['Message Count', (chat.messageCount ?? 0)],
+                ['Last Activity', chat.lastActivity ? new Date(chat.lastActivity).toLocaleString() : '—'],
+                ['Flags', (chat.flagCount ?? 0) > 0 ? `⚠️ ${chat.flagCount}` : '0'],
+                ['Reports', (chat.reportCount ?? 0) > 0 ? `🛡️ ${chat.reportCount}` : '0'],
                 ['Chat ID', chat.id],
                 ['Ride ID', chat.rideId ?? 'Direct'],
-              ].map(([k, v]) => (
-                <div key={String(k)} className="bg-[#1A1A1E] rounded-lg p-3">
+              ].map(([k, v], idx) => (
+                <div key={`metadata-${idx}`} className="bg-[#1A1A1E] rounded-lg p-3">
                   <p className="text-white/40 text-xs">{k}</p>
                   <p className="text-white text-sm font-medium">{String(v)}</p>
                 </div>
@@ -86,7 +86,7 @@ function ChatDetailModal({ chat, onClose }: { chat: ChatRecord; onClose: () => v
               </div>
               {!accessGranted ? (
                 <div className="p-4 space-y-3">
-                  <p className="text-white/60 text-xs">This chat has {chat.reportCount} report(s) and {chat.flagCount} flagged messages. Full message content requires a valid reason. Access is logged.</p>
+                  <p className="text-white/60 text-xs">This chat has {(chat.reportCount ?? 0)} report(s) and {(chat.flagCount ?? 0)} flagged messages. Full message content requires a valid reason. Access is logged.</p>
                   <select
                     value={accessReason}
                     onChange={(e) => setAccessReason(e.target.value)}
@@ -229,7 +229,7 @@ export function AdminChat() {
           {chats.map((chat) => (
             <div
               key={chat.id}
-              className={(`p-5 rounded-2xl border bg-[#1A1A1E] transition-all hover:bg-[#23232A] cursor-pointer group ${chat.flagCount > 0 ? 'border-[#E83950]/30 glow-red' : 'border-[#2A2A2E]'}`)}
+              className={(`p-5 rounded-2xl border bg-[#1A1A1E] transition-all hover:bg-[#23232A] cursor-pointer group ${(chat.flagCount ?? 0) > 0 ? 'border-[#E83950]/30 glow-red' : 'border-[#2A2A2E]'}`)}
               onClick={() => setSelected(chat)}
             >
               <div className="flex items-start justify-between mb-4">
@@ -248,30 +248,30 @@ export function AdminChat() {
               <div className="space-y-3">
                 <div className="flex justify-between text-xs">
                   <span className="text-white/40">Participants</span>
-                  <span className="text-white/60">{chat.participants.length} users</span>
+                  <span className="text-white/60">{(chat.participants?.length ?? 0)} users</span>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-white/40">Messages</span>
-                  <span className="text-white/60">{chat.messageCount} total</span>
+                  <span className="text-white/60">{chat.messageCount ?? 0} total</span>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-white/40">Last Active</span>
-                  <span className="text-white/60">{new Date(chat.lastActivity).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  <span className="text-white/60">{chat.lastActivity ? new Date(chat.lastActivity).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</span>
                 </div>
               </div>
 
               <div className="mt-5 pt-4 border-t border-white/5 flex gap-2">
-                {chat.flagCount > 0 && (
+                {(chat.flagCount ?? 0) > 0 && (
                   <span className="px-2 py-1 bg-[#E83950]/20 text-[#E83950] text-[10px] font-bold rounded uppercase">
                      ⚠️ {chat.flagCount} Flags
                   </span>
                 )}
-                {chat.reportCount > 0 && (
+                {(chat.reportCount ?? 0) > 0 && (
                   <span className="px-2 py-1 bg-amber-500/20 text-amber-400 text-[10px] font-bold rounded uppercase">
                      🛡️ {chat.reportCount} Reports
                   </span>
                 )}
-                {chat.flagCount === 0 && chat.reportCount === 0 && (
+                {(chat.flagCount ?? 0) === 0 && (chat.reportCount ?? 0) === 0 && (
                    <span className="px-2 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold rounded uppercase">Clean</span>
                 )}
               </div>

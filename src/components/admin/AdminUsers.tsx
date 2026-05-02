@@ -64,21 +64,21 @@ function UserDetailModal({ user, onClose }: { user: AdminUser; onClose: () => vo
                 <p className="text-white/40 text-[10px] uppercase tracking-wider mb-1">Rides Completed</p>
                 <div className="flex items-center gap-2">
                    <Clock size={14} className="text-blue-400" />
-                   <p className="text-white font-bold">{user.ridesCount}</p>
+                   <p className="text-white font-bold">{user.ridesCount ?? 0}</p>
                 </div>
              </div>
              <div className="bg-[#1A1A1E] rounded-2xl p-4 border border-[#2A2A2E]">
                 <p className="text-white/40 text-[10px] uppercase tracking-wider mb-1">Avg Rating</p>
                 <div className="flex items-center gap-2">
                    <Star size={14} className="text-amber-400 fill-amber-400" />
-                   <p className="text-white font-bold">{user.rating.toFixed(1)}</p>
+                   <p className="text-white font-bold">{user.rating ? user.rating.toFixed(1) : '—'}</p>
                 </div>
              </div>
              <div className="bg-[#1A1A1E] rounded-2xl p-4 border border-[#2A2A2E]">
                 <p className="text-white/40 text-[10px] uppercase tracking-wider mb-1">Safety Alerts</p>
                 <div className="flex items-center gap-2">
-                   <ShieldAlert size={14} className={user.flags > 0 ? 'text-[#E83950]' : 'text-white/30'} />
-                   <p className={`text-white font-bold ${user.flags > 5 ? 'text-[#E83950]' : ''}`}>{user.flags}</p>
+                   <ShieldAlert size={14} className={(user.flags ?? 0) > 0 ? 'text-[#E83950]' : 'text-white/30'} />
+                   <p className={`text-white font-bold ${(user.flags ?? 0) > 5 ? 'text-[#E83950]' : ''}`}>{user.flags ?? 0}</p>
                 </div>
              </div>
           </div>
@@ -156,14 +156,50 @@ function UserDetailModal({ user, onClose }: { user: AdminUser; onClose: () => vo
              <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
                    <p className="text-white/30 text-[10px] uppercase font-bold tracking-wider mb-1">Last Active</p>
-                   <p className="text-white/90 text-sm font-medium">{new Date(user.lastActive).toLocaleString()}</p>
+                   <p className="text-white/90 text-sm font-medium">{user.lastActive ? new Date(user.lastActive).toLocaleString() : '—'}</p>
                 </div>
                 <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
                    <p className="text-white/30 text-[10px] uppercase font-bold tracking-wider mb-1">Join Date</p>
-                   <p className="text-white/90 text-sm font-medium">{new Date(user.joinedAt).toLocaleDateString()}</p>
+                   <p className="text-white/90 text-sm font-medium">{user.joinedAt ? new Date(user.joinedAt).toLocaleDateString() : '—'}</p>
                 </div>
              </div>
           </div>
+
+          {/* Moderation History */}
+          {((user.reportCount ?? 0) > 0 || (user.warningCount ?? 0) > 0 || user.bannedReason) && (
+            <div className="space-y-4 pt-4 border-t border-[#2A2A2E]">
+              <h3 className="text-white/60 text-xs font-bold uppercase tracking-widest">Moderation History</h3>
+              <div className="space-y-3">
+                {(user.reportCount ?? 0) > 0 && (
+                  <div className="bg-[#E83950]/10 border border-[#E83950]/20 rounded-2xl p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-[#E83950] text-sm font-bold">Reports Filed</p>
+                      <span className="px-2 py-1 rounded bg-[#E83950]/20 text-[#E83950] text-xs font-bold">{user.reportCount}</span>
+                    </div>
+                    <p className="text-white/60 text-xs">User has been reported {user.reportCount} times. Review reports in Moderation tab.</p>
+                  </div>
+                )}
+                {(user.warningCount ?? 0) > 0 && (
+                  <div className={`border rounded-2xl p-4 ${user.warningCount === 3 ? 'bg-red-500/10 border-red-500/20' : 'bg-amber-500/10 border-amber-500/20'}`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className={`text-sm font-bold ${user.warningCount === 3 ? 'text-red-400' : 'text-amber-400'}`}>Warnings Issued</p>
+                      <span className={`px-2 py-1 rounded text-xs font-bold ${user.warningCount === 3 ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-400'}`}>{user.warningCount}/3</span>
+                    </div>
+                    <p className={`text-xs ${user.warningCount === 3 ? 'text-red-400/80' : 'text-amber-400/80'}`}>
+                      {user.warningCount === 3 ? '⚠️ CRITICAL: User at maximum warning level. Next violation will trigger automatic ban.' : `User has received ${user.warningCount} warning(s). ${user.lastWarningDate ? `Last warning: ${new Date(user.lastWarningDate).toLocaleDateString()}` : ''}`}
+                    </p>
+                  </div>
+                )}
+                {user.bannedReason && (
+                  <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4">
+                    <p className="text-red-400 text-sm font-bold mb-2">Account Banned</p>
+                    <p className="text-white/60 text-xs mb-2">Reason: {user.bannedReason}</p>
+                    {user.bannedDate && <p className="text-white/40 text-xs">Banned: {new Date(user.bannedDate).toLocaleDateString()}</p>}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* User Moderation Actions */}
           <div className="pt-4 border-t border-[#2A2A2E]">
@@ -227,7 +263,7 @@ export function AdminUsers() {
              <p className="text-[10px] uppercase text-white/40 tracking-wider">Total</p>
            </div>
            <div className="bg-[#1A1A1E] border border-[#2A2A2E] rounded-xl px-4 py-2 text-center">
-             <p className="text-xl font-bold text-[#E83950]">{safeUsers.filter(u => u.flags > 10).length}</p>
+             <p className="text-xl font-bold text-[#E83950]">{safeUsers.filter(u => (u.flags ?? 0) > 10).length}</p>
              <p className="text-[10px] uppercase text-white/40 tracking-wider">At Risk</p>
            </div>
         </div>
@@ -262,51 +298,99 @@ export function AdminUsers() {
        ) : error ? (
         <div className="py-20 text-center text-[#E83950] font-bold">{error}</div>
        ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map(user => (
             <div
               key={user.id}
               onClick={() => setSelectedUser(user)}
-              className="group relative bg-[#1A1A1E] border border-[#2A2A2E] rounded-3xl p-5 transition-all hover:bg-[#202025] hover:border-[#E83950]/20 cursor-pointer overflow-hidden shadow-md"
+              className="group relative bg-[#1A1A1E] border border-[#2A2A2E] rounded-3xl p-6 transition-all hover:bg-[#202025] hover:border-[#E83950]/20 cursor-pointer overflow-hidden shadow-md"
             >
-              {/* Status Indicator */}
-              <div className={`absolute top-0 right-0 w-12 h-12 bg-radial-gradient opacity-0 group-hover:opacity-40 transition-opacity`} style={{ background: `radial-gradient(circle at 100% 0%, ${user.status === 'active' ? '#10B981' : '#E83950'} 0%, transparent 70%)` }} />
+              {/* Status Indicator Glow */}
+              <div className={`absolute top-0 right-0 w-12 h-12 opacity-0 group-hover:opacity-40 transition-opacity`} style={{ background: `radial-gradient(circle at 100% 0%, ${user.status === 'active' ? '#10B981' : user.status === 'suspended' ? '#F97316' : '#E83950'} 0%, transparent 70%)` }} />
 
-              <div className="flex items-center gap-4 mb-5">
-                <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-lg font-bold text-white/30 group-hover:bg-[#E83950]/10 group-hover:text-[#E83950] transition-all">
-                  {user.name[0]}
+              {/* Header with Avatar and Name */}
+              <div className="flex justify-between items-start mb-6">
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 flex items-center justify-center text-xl font-bold text-white/40 group-hover:from-[#E83950]/20 group-hover:to-[#E83950]/5 group-hover:text-[#E83950] transition-all shrink-0">
+                    {user.name[0].toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-white font-bold truncate group-hover:text-[#E83950] transition-colors text-lg">{user.name}</h3>
+                    <p className="text-[10px] text-white/40 truncate">{user.username}</p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <h3 className="text-white font-bold truncate group-hover:text-[#E83950] transition-colors">{user.name}</h3>
-                  <div className="flex items-center gap-2">
-                    <span className={`w-1.5 h-1.5 rounded-full ${user.status === 'active' ? 'bg-emerald-500' : user.status === 'suspended' ? 'bg-orange-500' : 'bg-[#E83950]'}`} />
-                    <p className="text-[10px] text-white/30 uppercase tracking-widest uppercase">{user.status}</p>
+                <div className="flex flex-col gap-1.5 items-end shrink-0">
+                  <span className={`px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider whitespace-nowrap ${statusColor[user.status]}`}>
+                    {user.status}
+                  </span>
+                  {/* Moderation Indicators */}
+                  <div className="flex gap-1.5">
+                    {(user.reportCount ?? 0) > 0 && (
+                      <span className="px-1.5 py-0.5 rounded text-[8px] font-bold text-white bg-[#E83950]/30 border border-[#E83950]/30">
+                        {user.reportCount} Reports
+                      </span>
+                    )}
+                    {(user.warningCount ?? 0) > 0 && (
+                      <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold text-white border ${
+                        user.warningCount === 3
+                          ? 'bg-red-500/30 border-red-500/30'
+                          : 'bg-amber-500/30 border-amber-500/30'
+                      }`}>
+                        ⚠️ {user.warningCount}/3
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-3">
-                 <div className="flex justify-between text-[11px]">
-                   <span className="text-white/40">Loyalty Tier</span>
-                   <span className="text-white/80 font-bold uppercase tracking-wider">{user.rating > 4.5 ? 'Platinum' : 'Standard'}</span>
+              {/* Stats Grid */}
+              <div className="grid grid-cols-2 gap-3 mb-5 pb-5 border-b border-white/5">
+                 <div className="flex items-center gap-2">
+                    <Star size={12} className="text-amber-400" />
+                    <div>
+                      <p className="text-[9px] text-white/40 uppercase tracking-wider">Rating</p>
+                      <p className="text-white font-bold text-sm">{user.rating ? user.rating.toFixed(1) : '—'}</p>
+                    </div>
                  </div>
-                 <div className="flex justify-between text-[11px]">
-                   <span className="text-white/40">Safety Flags</span>
-                   <span className={`${user.flags > 0 ? 'text-[#E83950]' : 'text-white/60'} font-bold`}>{user.flags} Alerts</span>
+                 <div className="flex items-center gap-2">
+                    <Clock size={12} className="text-blue-400" />
+                    <div>
+                      <p className="text-[9px] text-white/40 uppercase tracking-wider">Rides</p>
+                      <p className="text-white font-bold text-sm">{user.ridesCount ?? 0}</p>
+                    </div>
                  </div>
-                 <div className="flex justify-between text-[11px]">
-                   <span className="text-white/40">Last Presence</span>
-                   <span className="text-white/60">2h ago</span>
+                 <div className="flex items-center gap-2">
+                    <ShieldAlert size={12} className={(user.flags ?? 0) > 0 ? 'text-[#E83950]' : 'text-white/30'} />
+                    <div>
+                      <p className="text-[9px] text-white/40 uppercase tracking-wider">Flags</p>
+                      <p className={`font-bold text-sm ${(user.flags ?? 0) > 5 ? 'text-[#E83950]' : 'text-white'}`}>{user.flags ?? 0}</p>
+                    </div>
+                 </div>
+                 <div className="flex items-center gap-2">
+                    <User size={12} className="text-white/40" />
+                    <div>
+                      <p className="text-[9px] text-white/40 uppercase tracking-wider">Trust</p>
+                      <p className="text-white font-bold text-sm">{user.trustScore ? user.trustScore.toFixed(0) : '—'}%</p>
+                    </div>
                  </div>
               </div>
 
-              <div className="mt-5 pt-4 border-t border-white/5 flex items-center justify-between">
-                 <div className="flex -space-x-1.5 overflow-hidden">
-                    <div className="inline-block h-5 w-5 rounded-full ring-2 ring-[#1A1A1E] bg-white/10" />
-                    <div className="inline-block h-5 w-5 rounded-full ring-2 ring-[#1A1A1E] bg-white/5" />
+              {/* Info Row */}
+              <div className="flex items-center justify-between text-[10px] mb-5">
+                 <div className="text-white/50">
+                    <p className="text-white/40 uppercase tracking-wider mb-1">Last Active</p>
+                    <p className="text-white/70 font-medium">{user.lastActive ? new Date(user.lastActive).toLocaleDateString() : '—'}</p>
                  </div>
-                 <button className="text-[10px] font-bold text-[#E83950] opacity-0 group-hover:opacity-100 transition-all uppercase tracking-widest">Profile Card</button>
+                 <div className="text-right text-white/50">
+                    <p className="text-white/40 uppercase tracking-wider mb-1">Member Since</p>
+                    <p className="text-white/70 font-medium">{user.joinedAt ? new Date(user.joinedAt).toLocaleDateString() : '—'}</p>
+                 </div>
               </div>
+
+              {/* Action Button */}
+              <button className="w-full py-2.5 rounded-xl bg-white/5 group-hover:bg-[#E83950]/10 text-white/30 group-hover:text-[#E83950] text-xs font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2">
+                <Eye size={13} /> View Profile
+              </button>
             </div>
           ))}
           {filtered.length === 0 && (

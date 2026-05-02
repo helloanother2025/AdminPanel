@@ -8,6 +8,7 @@ import { AdminUsers } from './components/admin/AdminUsers';
 import { AdminRides } from './components/admin/AdminRides';
 import { AdminSafety } from './components/admin/AdminSafety';
 import { AdminChat } from './components/admin/AdminChat';
+import { AdminModeration } from './components/admin/AdminModeration';
 import { AdminJoinRequests } from './components/admin/AdminJoinRequests';
 import { AdminNotifications } from './components/admin/AdminNotifications';
 import { AdminRepair } from './components/admin/AdminRepair';
@@ -47,6 +48,7 @@ export default function App() {
             <Route path="rides" element={<AdminRides />} />
             <Route path="safety" element={<AdminSafety />} />
             <Route path="chat" element={<AdminChat />} />
+            <Route path="moderation" element={<AdminModeration />} />
             <Route path="join-requests" element={<AdminJoinRequests />} />
             <Route path="notifications" element={<AdminNotifications />} />
             <Route path="repair" element={<AdminRepair />} />
